@@ -2,8 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -11,32 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Repo checkout
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3️⃣ Android SDK + auto license accept
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
           accept-android-sdk-licenses: true
 
-      # 4️⃣ Force accept ALL remaining licenses (fixes Google TV issue)
-      - name: Accept all Android SDK licenses
+      - name: Accept all SDK licenses
         run: yes | sdkmanager --licenses
 
-      # 5️⃣ Build APK (no gradlew required)
-      - name: Build Debug APK
-        run: gradle assembleDebug
+      # 🔥 KEY STEP — generate wrapper JAR safely
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 8.6
 
-      # 6️⃣ Upload APK as artifact
+      # 🔥 USE WRAPPER (NOT system gradle)
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
